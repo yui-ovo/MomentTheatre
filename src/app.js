@@ -113,7 +113,7 @@ export async function mount(host, { preview = false, stylesheet = null } = {}) {
   const nav = el('nav', { class: 'tabs', 'aria-label': '页面' });
   const themeButton = button(state.settings.theme === 'night' ? '☾' : '☼', toggleTheme, { class: 'icon-button', 'aria-label': '切换日夜模式' });
   const header = el('header', { class: 'topbar' }, el('div', { class: 'brand' }, mobius(), el('span', {}, '瞬息')), nav,
-    el('div', { class: 'window-actions' }, themeButton, button('−', () => dialog.close(), { class: 'icon-button', 'aria-label': '收起瞬息，生成继续' })));
+    el('div', { class: 'window-actions' }, themeButton, button('收起', () => dialog.close(), { class: 'window-close', 'aria-label': '收起瞬息，生成继续', title: '收起瞬息，生成继续' })));
   dialog.append(header);
   dialog.append(status, content);
   shadow.append(launcher, dialog); document.body.append(root);
@@ -864,7 +864,7 @@ export async function mount(host, { preview = false, stylesheet = null } = {}) {
       el('section', { class: 'settings-group' }, el('h2', {}, '数据'), syncPanel(),
         el('div', { class: 'actions' }, button('按分类导出 ZIP', exportCategories), button('备份全部资料', () => download(backup(state), `瞬息-备份-${new Date().toISOString().slice(0, 10)}.json`, 'application/json')), button('恢复备份', () => restore.click(), { disabled: Boolean(task) })), restore,
         ),
-      el('section', { class: 'settings-group update-group' }, el('h2', {}, '更新'), el('p', {}, `当前版本 · ${VERSION}`), el('p', { class: 'muted' }, '1.0.13：修复 HTML 过滤空壳，更新表情与转账显示，支持返回未保存草稿。'), button('检查更新', () => action(async () => { notify('正在检查更新…'); notify(await host.checkUpdate()); }))),
+      el('section', { class: 'settings-group update-group' }, el('h2', {}, '更新'), el('p', {}, `当前版本 · ${VERSION}`), el('p', { class: 'muted' }, '1.0.14：适配 TauriTavern 手机安全区，修复顶栏遮挡，增大收起按钮。'), button('检查更新', () => action(async () => { notify('正在检查更新…'); notify(await host.checkUpdate()); }))),
       el('section', { class: 'settings-group' }, el('h2', {}, '报错记录'), el('div', { class: 'error-list', 'aria-live': 'polite' }, errorRows())));
   }
   function exportCategories() {

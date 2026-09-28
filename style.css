@@ -65,3 +65,29 @@ button:hover{background:transparent}.primary:hover{background:var(--ink);opacity
 @media(max-width:540px){.sticker-grid{gap:4px}}
 
 .category-create-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.category-create-row>.text-button{margin-left:auto;flex-shrink:0}.form-error{font-size:12px;border-left:2px solid currentColor;padding-left:10px}
+
+/* The shadow root cannot use TT's document-level overlay rules. Consume its
+   inherited insets directly; ordinary mobile browsers use the native env(). */
+:host {
+  --shunxi-safe-top: max(0px, var(--tt-inset-top, env(safe-area-inset-top, 0px)));
+  --shunxi-safe-right: max(0px, var(--tt-inset-right, env(safe-area-inset-right, 0px)));
+  --shunxi-safe-bottom: max(0px, var(--tt-inset-bottom, env(safe-area-inset-bottom, 0px)));
+  --shunxi-safe-left: max(0px, var(--tt-inset-left, env(safe-area-inset-left, 0px)));
+}
+.shell {
+  position: fixed;
+  inset: var(--shunxi-safe-top) var(--shunxi-safe-right) var(--shunxi-safe-bottom) var(--shunxi-safe-left);
+  width: min(1120px, calc(100vw - var(--shunxi-safe-left) - var(--shunxi-safe-right) - 64px));
+  height: min(910px, calc(100dvh - var(--shunxi-safe-top) - var(--shunxi-safe-bottom) - 64px));
+}
+.window-actions { flex-shrink: 0; }
+.window-actions > button { min-width: 44px; min-height: 44px; }
+.window-close { font-size: 14px; white-space: nowrap; border-color: var(--line); }
+@media (max-width: 700px) {
+  .shell {
+    width: calc(100vw - var(--shunxi-safe-left) - var(--shunxi-safe-right));
+    height: calc(100dvh - var(--shunxi-safe-top) - var(--shunxi-safe-bottom));
+  }
+  .topbar { grid-template-columns: minmax(0, 1fr) auto; column-gap: 8px; }
+  .workspace { padding-bottom: 0; }
+}
