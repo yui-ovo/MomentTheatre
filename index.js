@@ -19,6 +19,6 @@ async function start() {
 }
 const context = globalThis.SillyTavern?.getContext?.();
 if (context?.eventSource && context?.eventTypes?.APP_READY) {
-  // APP_READY is a sticky event in SillyTavern 1.18.0; late subscribers also run.
+  // APP_READY is sticky in SillyTavern 1.14.0 and later; late subscribers also run.
   context.eventSource.on(context.eventTypes.APP_READY, start);
-} else console.error('[瞬息] 请作为 SillyTavern 1.18.0 原生扩展安装。');
+} else console.error('[瞬息] 请作为 SillyTavern 1.14.0 或兼容版本的原生扩展安装。');

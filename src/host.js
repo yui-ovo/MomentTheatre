@@ -2,6 +2,7 @@ import { ServerLibrary } from './sync-remote.js';
 import { clone, id } from './model.js';
 import { mountExtensionPanel } from './extension-panel.js';
 import { normalizeRegexRules } from './preset-regex.js';
+import { generationStatus, worldInfoNames, chatPayload } from './host-compat.js';
 
 export function normalizeEndpoint(value) {
   let url;
@@ -44,7 +45,7 @@ export class TavernHost {
   constructor(context, extensionUrl) {
     this.getContext = context; this.extensionUrl = extensionUrl; this.preview = false; this.mainBusy = false; this.disposers = [];
     const c = context();
-    if (!c?.accountStorage || !c?.eventSource) throw new Error('需要 SillyTavern 1.18.0 的扩展接口。');
+    if (!c?.accountStorage || !c?.eventSource) throw new Error('需要 SillyTavern 1.14.0 或兼容版本的扩展接口。');
     const scopeKey = 'shunxi.library.scope.v1';
     let scope = c.accountStorage.getItem(scopeKey);
     if (!scope) { scope = id(); c.accountStorage.setItem(scopeKey, scope); }
@@ -58,8 +59,8 @@ export class TavernHost {
   }
   async initialize() {
     const core = await import(new URL('../../../../script.js', this.extensionUrl).href);
-    if (typeof core.isGenerating !== 'function') throw new Error('酒馆缺少 isGenerating 状态接口，需要 1.18.0 或兼容版本。');
-    this.isGenerating = core.isGenerating;
+    const groups = typeof core.isGenerating === 'function' ? null : await import(new URL('../../../group-chats.js', this.extensionUrl).href);
+    this.isGenerating = generationStatus(core, groups);
     this.worldInfo = await import(new URL('../../../world-info.js', this.extensionUrl).href);
     this.characterUtils = await import(new URL('../../../utils.js', this.extensionUrl).href);
   }
@@ -83,13 +84,13 @@ export class TavernHost {
   }
   async catalog() {
     const c = this.getContext(), p = c.powerUserSettings;
-    if (!Array.isArray(c.characters) || !p || typeof c.getWorldInfoNames !== 'function') throw new Error('酒馆资料接口尚未就绪，请稍后刷新资料。');
+    if (!Array.isArray(c.characters) || !p) throw new Error('酒馆资料接口尚未就绪，请稍后刷新资料。');
     const manager = c.getPresetManager?.('openai');
     const characterSources = await this.characterSources();
     return { characterSources, currentCharacter: characterSources.name || '未打开角色聊天', currentPersona: c.name1 || '我',
       characters: c.characters.map((ch, i) => ({ value: ch.avatar, label: ch.name || `角色 ${i + 1}` })),
       personas: Object.entries(p.personas || {}).map(([value, label]) => ({ value, label })),
-      books: c.getWorldInfoNames().map(name => ({ value: name, label: name })),
+      books: worldInfoNames(c, this.worldInfo).map(name => ({ value: name, label: name })),
       presets: (manager?.getAllPresets() || []).map(name => ({ value: name, label: name })), mainApi: c.mainApi };
   }
   async presetDetail(name) {
@@ -135,7 +136,7 @@ export class TavernHost {
     const character = latest.characters[latest.characterId];
     const filename = this.characterUtils?.getCharaFilename?.(latest.characterId);
     const additional = this.worldInfo?.world_info?.charLore?.find(item => item.name === filename)?.extraBooks || [];
-    const available = new Set(latest.getWorldInfoNames());
+    const available = new Set(worldInfoNames(latest, this.worldInfo));
     const books = [...new Set([character.data?.extensions?.world, ...additional].filter(name => typeof name === 'string' && available.has(name)))];
     return { key, name:character.name || '', books, rules:normalizeRegexRules(character.data?.extensions?.regex_scripts) };
   }
@@ -197,7 +198,7 @@ export class TavernHost {
   }
   async generate({ messages, settings, snapshot, signal, onChunk }) {
     const c = this.getContext(), Service = c.ChatCompletionService;
-    if (!Service?.sendRequest || !Service?.presetToGeneratePayload) throw new Error('当前酒馆缺少 ChatCompletionService，请使用 1.18.0 或兼容版本。');
+    if (!Service?.sendRequest || !Service?.presetToGeneratePayload) throw new Error('当前酒馆缺少 ChatCompletionService，请使用 1.14.0 或兼容版本。');
     let payload;
     if (settings.apiMode === 'independent') {
       if (!settings.model.trim()) throw new Error('请先在独立 API 设置中拉取并选择模型。');
@@ -209,8 +210,8 @@ export class TavernHost {
     } else {
       if (this.isMainBusy()) throw new Error('正文正在生成。跟随主 API 模式需等待正文结束，或改用独立 API。');
       if (c.mainApi !== 'openai') throw new Error('基础版跟随模式目前支持酒馆 Chat Completion 连接。其他连接类型请先使用独立 OpenAI 兼容 API。');
-      payload = await Service.presetToGeneratePayload(snapshot?.preset || {}, {}, {
-        messages, model: c.getChatCompletionModel(c.chatCompletionSettings), max_tokens: settings.maxTokens, stream: settings.stream !== false,
+      payload = await chatPayload(c, snapshot?.preset || {}, {
+        messages, model: c.getChatCompletionModel(), max_tokens: settings.maxTokens, stream: settings.stream !== false,
       });
     }
     const conflictController = new AbortController();

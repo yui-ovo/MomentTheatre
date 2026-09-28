@@ -1,8 +1,8 @@
 # 瞬息 · 番外小剧场
 
-本仓库基于 [小虞 / Yulia0128 的 MomentTheatre](https://github.com/Yulia0128/MomentTheatre)，保留原作者代码与提交历史，用于 TauriTavern 适配。1.0.14 修复手机顶栏与收起按钮被系统状态栏遮挡的问题。
+本仓库基于 [小虞 / Yulia0128 的 MomentTheatre](https://github.com/Yulia0128/MomentTheatre)，保留原作者代码与提交历史，用于 TauriTavern 适配。1.0.14 修复手机顶栏与收起按钮被系统状态栏遮挡的问题；1.0.15 增加 SillyTavern 1.14.0 兼容适配。
 
-Moment Theatre — 原生 SillyTavern 扩展，当前版本 **1.0.14**，适用于 **SillyTavern 1.18.0 及以上**。不依赖酒馆助手。
+Moment Theatre — 原生 SillyTavern 扩展，当前版本 **1.0.15**，适用于 **SillyTavern 1.14.0 及以上**。不依赖酒馆助手。
 
 在独立窗口中生成、阅读和整理番外，保存于独立资料库，不向正文聊天插入消息。
 
@@ -77,6 +77,8 @@ ZIP 用于手动部署或上传仓库前解压，不能作为酒馆普通文件�
 - 旧版开发主题从菜单退役；旧作品保存的样式仍可阅读和导出。用户自行导入的其他独立主题继续保留。
 
 ## 验证范围
+
+SillyTavern 1.14 适配差异和验收步骤见 [1.14 兼容说明](docs/COMPATIBILITY-1.14.md)。
 
 原生接口按 SillyTavern 1.18.0 版本源码核对，详见 [接口说明](docs/API-COMPATIBILITY.md)。自动化检查覆盖数据、请求隔离、主题快照、备份导出和浏览器交互。
 
